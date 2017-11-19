@@ -1,0 +1,8 @@
+LSPacket ID
+LSPacket Server Port
+
+number of nodes
+<List them with their server port>
+
+number of edges
+<edge from U node to V node with W weight>
