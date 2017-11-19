@@ -1,7 +1,7 @@
 /**
  * Created by Zaiter on 11/18/2017.
  */
-public class HW4_Tester {
+public class TestCaseRunner {
     public static void main(String[] args) throws Exception {
         LSPacket x0 = new LSPacket("0.data");
         LSPacket x1 = new LSPacket("1.data");

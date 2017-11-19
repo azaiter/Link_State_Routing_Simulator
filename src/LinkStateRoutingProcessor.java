@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by Zaiter on 11/18/2017.
  */
-public class HW4_Processor {
+public class LinkStateRoutingProcessor {
     public static final String SERVER_IP = "127.0.0.1";
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
