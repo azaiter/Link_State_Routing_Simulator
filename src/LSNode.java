@@ -4,7 +4,7 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 /**
- * <h1>LSPacket</h1>
+ * <h1>LSNode</h1>
  *
  * <h2>LS Link class that acts as a single LS packet on the network.</h2>
  *
@@ -22,7 +22,7 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
  * @author Zack Zaiter (Abdulrahman) & Ryan Castiglione.
  * @since 11/16/2017
  */
-public class LSPacket {
+public class LSNode {
     // class members
     private String packetID;
     int serverPort;
@@ -36,8 +36,8 @@ public class LSPacket {
      * a local network graph with its adjacent links
      *
      * The file has to be of the following format:
-     *           LSPacket ID
-     *           LSPacket Server Port
+     *           LSNode ID
+     *           LSNode Server Port
      *
      *           number of nodes
      *           <List them with their server port>
@@ -57,9 +57,9 @@ public class LSPacket {
      *           0 2 6
      *
      * @param fileName The file name of the file that contains the LS packet settings.
-     * @throws Exception when the LSPacket fails to initiate from a settings file
+     * @throws Exception when the LSNode fails to initiate from a settings file
      */
-    LSPacket(String fileName) throws Exception{
+    LSNode(String fileName) throws Exception{
         //initiate the variables
         Scanner sc = new Scanner(new File(fileName));
         packetID = sc.next();
@@ -96,7 +96,7 @@ public class LSPacket {
      * A method that has the ability to expand its topology by recieving other topologies
      * from other LS links instances or topology instances
      *
-     * @param inLSPacket a valid LSPacket instance that has a valid topology.
+     * @param inLSPacket a valid LSNode instance that has a valid topology.
      */
     void addEdgesFromAnotherLSPacket(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> inLSPacket){
         //add if nodes isn't in the graph

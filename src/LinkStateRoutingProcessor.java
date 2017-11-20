@@ -1,7 +1,6 @@
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -35,7 +34,7 @@ public class LinkStateRoutingProcessor {
      * a main function that runs the interactive window function
      *
      * @param args program caller arguments
-     * @throws Exception when the LSPacket fails to initiate from a settings file
+     * @throws Exception when the LSNode fails to initiate from a settings file
      */
     public static void main(String[] args) throws Exception {
         showInteractiveMenu(args);
@@ -45,13 +44,13 @@ public class LinkStateRoutingProcessor {
      * A method that shows the main interactive window of the program.
      *
      * @param args program caller arguments
-     * @throws Exception when the LSPacket fails to initiate from a settings file
+     * @throws Exception when the LSNode fails to initiate from a settings file
      */
     public static void showInteractiveMenu(String[] args) throws Exception {
         // initialize the variables
         Scanner sc = new Scanner(System.in);
         int choice;
-        LSPacket lsPacket = new LSPacket(args[0]);
+        LSNode lsNode = new LSNode(args[0]);
         boolean serverRunning = false;
         boolean clientRunning = false;
 
@@ -65,17 +64,17 @@ public class LinkStateRoutingProcessor {
                     case 1:
                         if (!serverRunning) {
                             serverRunning = true;
-                            runServer(lsPacket);
+                            runServer(lsNode);
                         } else System.out.println("Server is running! you can't run it twice.");
                         break;
                     // 2- run the clients communicator
                     case 2:
                         clientRunning = true;
-                        runClient(lsPacket);
+                        runClient(lsNode);
                         break;
                     // 3- print current LS shortest path from this node to all others
                     case 3:
-                        System.out.println(lsPacket);
+                        System.out.println(lsNode);
                         break;
                     // 4- exit the program
                     case 4:
@@ -96,14 +95,14 @@ public class LinkStateRoutingProcessor {
      * A method to run the server that will be acting as the communicator about current LS link with other links that
      * request the graph topology.
      *
-     * @param lsPacket a valid LSPacket instance.
+     * @param lsNode a valid LSNode instance.
      */
-    public static void runServer(LSPacket lsPacket){
+    public static void runServer(LSNode lsNode){
         // run the server as a thread that spawns threads for each LS packet connection ( Concurrency Control )
         new Thread(()->{
             try {
                 //initiate server socket
-                ServerSocket srvSocket = new ServerSocket(lsPacket.serverPort);
+                ServerSocket srvSocket = new ServerSocket(lsNode.serverPort);
                 try {
                     while (true) {
                         // accept client connection and serve it in a new thread.
@@ -111,7 +110,7 @@ public class LinkStateRoutingProcessor {
                         // initialize input and output streams.
                         new Thread(() -> {
                             try {
-                                // initiate a reentrant lock when accessing the LSPacket instance and updating the topography.
+                                // initiate a reentrant lock when accessing the LSNode instance and updating the topography.
                                 ReentrantLock lock = new ReentrantLock();
                                 ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                                 Object objectToRead = inputStream.readObject();
@@ -123,7 +122,7 @@ public class LinkStateRoutingProcessor {
                                 lock.lock();
                                 SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> clientLSPacketGraph =
                                         (SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>) objectToRead;
-                                lsPacket.addEdgesFromAnotherLSPacket(clientLSPacketGraph);
+                                lsNode.addEdgesFromAnotherLSPacket(clientLSPacketGraph);
                                 lock.unlock();
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -140,13 +139,13 @@ public class LinkStateRoutingProcessor {
     /**
      * A client runner that requests the network topology from all of its intermediate connections
      *
-     * @param lsPacket
+     * @param lsNode
      */
-    public static void runClient(LSPacket lsPacket){
+    public static void runClient(LSNode lsNode){
         // run a thread for each client request to all connected adjacent LS links
         new Thread(()->{
             while(true){
-                for (Integer portNum : lsPacket.adjacentLSPacketsPorts) {
+                for (Integer portNum : lsNode.adjacentLSPacketsPorts) {
                     new Thread(() -> {
                         try {
                             // initiate a lock, server the LS topography and close the connections.
@@ -154,7 +153,7 @@ public class LinkStateRoutingProcessor {
                             Socket socket = new Socket(SERVER_IP, portNum);
                             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                             lock.lock();
-                            outputStream.writeObject(lsPacket.lsPacketGraph);
+                            outputStream.writeObject(lsNode.lsPacketGraph);
                             lock.unlock();
                             socket.close();
                         } catch (Exception e) {
@@ -177,9 +176,9 @@ public class LinkStateRoutingProcessor {
      */
     public static void printMenu(boolean serverRunning, boolean clientRunning){
         System.out.println(
-                        "1 - Run LSPacket Server. Currently: "+serverRunning+"\n" +
-                        "2 - Once you have all Packets up, run LSPacket communicator. Currently: "+clientRunning+"\n" +
-                        "3 - Display current Routes from current LSPacket.\n"+
+                        "1 - Run LSNode Server. Currently: "+serverRunning+"\n" +
+                        "2 - Once you have all Packets up, run LSNode communicator. Currently: "+clientRunning+"\n" +
+                        "3 - Display current Routes from current LSNode.\n"+
                         "4 - Exit program"
         );
     }

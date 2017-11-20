@@ -3,11 +3,11 @@
  */
 public class TestCaseRunner {
     public static void main(String[] args) throws Exception {
-        LSPacket x0 = new LSPacket("0.data");
-        LSPacket x1 = new LSPacket("1.data");
-        LSPacket x2 = new LSPacket("2.data");
-        LSPacket x3 = new LSPacket("3.data");
-        LSPacket x4 = new LSPacket("4.data");
+        LSNode x0 = new LSNode("0.data");
+        LSNode x1 = new LSNode("1.data");
+        LSNode x2 = new LSNode("2.data");
+        LSNode x3 = new LSNode("3.data");
+        LSNode x4 = new LSNode("4.data");
 
         x0.addEdgesFromAnotherLSPacket(x1.lsPacketGraph);
         x0.addEdgesFromAnotherLSPacket(x2.lsPacketGraph);
