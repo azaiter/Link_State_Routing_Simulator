@@ -131,6 +131,8 @@ public class LSNode {
      */
     @Override
     public String toString(){
+        // initiate an empty forwading table
+        ArrayList<String[]> forwadingTable = new ArrayList<>();
         // we use a StringBuilder because we are smart people.
         StringBuilder toReturn = new StringBuilder();
         toReturn.append("ID: "+packetID+"\nShortest Path From "+packetID+" to all other LSPackets:\n");
@@ -140,8 +142,19 @@ public class LSNode {
             DijkstraShortestPath dijkstraShortestPath
                     = new DijkstraShortestPath(lsPacketGraph);
             List shortest_path = dijkstraShortestPath.getPath(packetID,v).getVertexList();
+            if(!v.equals(packetID)) {
+                String[] singleForwadingEntry = {v, shortest_path.get(1).toString()};
+                forwadingTable.add(singleForwadingEntry);
+            }
             toReturn.append("From " + packetID + " to " + v + " you take this path: "+shortest_path+"\n");
         });
+
+        // add forwarding table
+        toReturn.append("\nForwarding Table (Dst -> Node to take):\n");
+        forwadingTable.forEach((v)->{
+            toReturn.append(v[0]).append(" -> ").append(v[1]).append("\n");
+        });
+        toReturn.append("\n");
 
         // return the built string.
         return toReturn.toString();
