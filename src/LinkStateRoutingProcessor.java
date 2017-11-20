@@ -139,7 +139,7 @@ public class LinkStateRoutingProcessor {
     /**
      * A client runner that requests the network topology from all of its intermediate connections
      *
-     * @param lsNode
+     * @param lsNode a valid LSNode instance.
      */
     public static void runClient(LSNode lsNode){
         // run a thread for each client request to all connected adjacent LS links
