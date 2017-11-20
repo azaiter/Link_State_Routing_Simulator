@@ -125,14 +125,16 @@ public class LinkStateRoutingProcessor {
                                 lsNode.addEdgesFromAnotherLSPacket(clientLSPacketGraph);
                                 lock.unlock();
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                //e.printStackTrace();
                             }
                         }).start();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
-            } catch (Exception e){e.printStackTrace();}
+            } catch (Exception e){
+                //e.printStackTrace();
+                }
         }).start();
     }
 
@@ -157,12 +159,14 @@ public class LinkStateRoutingProcessor {
                             lock.unlock();
                             socket.close();
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            //e.printStackTrace();
                         }
                     }).start();
                     try {
                         Thread.sleep(5000); // sleep for 5 seconds (pulse sleep) to lessen the load on the network
-                    }catch (Exception e) {e.printStackTrace();}
+                    }catch (Exception e) {
+                        //e.printStackTrace();
+                    }
                 }
             }
         }).start();
