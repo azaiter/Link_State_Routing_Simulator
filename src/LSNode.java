@@ -1,7 +1,6 @@
 import java.io.File;
 import java.util.*;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 /**
  * <h1>LSNode</h1>
@@ -24,12 +23,12 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
  */
 public class LSNode {
     // class members
-    private String packetID;
+    String packetID;
     int serverPort;
     ArrayList<Integer> adjacentLSPacketsPorts = new ArrayList<>();
-    SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> lsPacketGraph =
-            new SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>
-                    (DefaultWeightedEdge.class);
+    SimpleDirectedWeightedGraph<String, LSEdge> lsPacketGraph =
+            new SimpleDirectedWeightedGraph<String, LSEdge>
+                    (LSEdge.class);
 
     /**
      * The class constructor that will Initiates a LS Link from a settings file with
@@ -84,9 +83,9 @@ public class LSNode {
             // you can't have duplicated edges in the network, skip if applicable
             // add the edge into the graph
             if(!lsPacketGraph.containsEdge(from,to) || !lsPacketGraph.containsEdge(to,from)){
-                    DefaultWeightedEdge edgeFromTo = lsPacketGraph.addEdge(from, to);
+                LSEdge edgeFromTo = lsPacketGraph.addEdge(from, to);
                     lsPacketGraph.setEdgeWeight(edgeFromTo, weight);
-                    DefaultWeightedEdge edgeToFrom = lsPacketGraph.addEdge(to, from);
+                LSEdge edgeToFrom = lsPacketGraph.addEdge(to, from);
                     lsPacketGraph.setEdgeWeight(edgeToFrom, weight);
             }
         }
@@ -98,7 +97,7 @@ public class LSNode {
      *
      * @param inLSPacket a valid LSNode instance that has a valid topology.
      */
-    void addEdgesFromAnotherLSPacket(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> inLSPacket){
+    void addEdgesFromAnotherLSPacket(SimpleDirectedWeightedGraph<String, LSEdge> inLSPacket){
         //add if nodes isn't in the graph
         inLSPacket.vertexSet().forEach((v)->{
             if(!this.lsPacketGraph.containsVertex(v)){
@@ -110,12 +109,13 @@ public class LSNode {
         inLSPacket.edgeSet().forEach((v)->{
             // you can't have duplicated edges in the network, skip if applicable
             if(!lsPacketGraph.containsEdge(inLSPacket.getEdgeSource(v),inLSPacket.getEdgeTarget(v))){ //you can't have duplicated edge
-                DefaultWeightedEdge edge = lsPacketGraph.addEdge(inLSPacket.getEdgeSource(v),inLSPacket.getEdgeTarget(v));
+                LSEdge edge2;
+                LSEdge edge = lsPacketGraph.addEdge(inLSPacket.getEdgeSource(v),inLSPacket.getEdgeTarget(v));
                 lsPacketGraph.setEdgeWeight(edge, inLSPacket.getEdgeWeight(v));
             }
             // do it for both sides as the graph is directed.
             if(!lsPacketGraph.containsEdge(inLSPacket.getEdgeTarget(v),inLSPacket.getEdgeSource(v))){ //you can't have duplicated edge
-                DefaultWeightedEdge edge = lsPacketGraph.addEdge(inLSPacket.getEdgeTarget(v),inLSPacket.getEdgeSource(v));
+                LSEdge edge = lsPacketGraph.addEdge(inLSPacket.getEdgeTarget(v),inLSPacket.getEdgeSource(v));
                 lsPacketGraph.setEdgeWeight(edge, inLSPacket.getEdgeWeight(v));
             }
         });
@@ -132,7 +132,7 @@ public class LSNode {
     @Override
     public String toString(){
         // initiate an empty forwading table
-        ArrayList<String[]> forwadingTable = new ArrayList<>();
+        ArrayList<String[]> forwardingTable = new ArrayList<>();
         // we use a StringBuilder because we are smart people.
         StringBuilder toReturn = new StringBuilder();
         toReturn.append("ID: "+packetID+"\nShortest Path From "+packetID+" to all other LSPackets:\n");
@@ -144,14 +144,14 @@ public class LSNode {
             List shortest_path = dijkstraShortestPath.getPath(packetID,v).getVertexList();
             if(!v.equals(packetID)) {
                 String[] singleForwadingEntry = {v, shortest_path.get(1).toString()};
-                forwadingTable.add(singleForwadingEntry);
+                forwardingTable.add(singleForwadingEntry);
             }
             toReturn.append("From " + packetID + " to " + v + " you take this path: "+shortest_path+"\n");
         });
 
         // add forwarding table
         toReturn.append("\nForwarding Table (Dst -> Node to take):\n");
-        forwadingTable.forEach((v)->{
+        forwardingTable.forEach((v)->{
             toReturn.append(v[0]).append(" -> ").append(v[1]).append("\n");
         });
         toReturn.append("\n");

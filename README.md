@@ -61,14 +61,14 @@ Sample File:
 2. Run the program with an argument containing the name of the LSNode settings file. This will act as a single 
 node in the network and you need more to build you're own network. 
 
-3. Run the server on all nodes first by typing 1, then after running all of them you can run the client 
-communicator by typing 2. You can always view the local topology by typing 3.
+3. Each LSNode now will communicate with its adjacent nodes and communicate with each other, you can always view
+the topology and GUI of the local graph of each node by sending 1 as a command..
 
 # Example
 Have a look at "Graph.gif" that has implementation with its "0.data" to "4.data" files.
 
 This following video shows how it is working and communicating with each other.
-[![Link State Routing Simulator](https://i.imgur.com/Wzm0sDN.png)](https://www.youtube.com/watch?v=Q_QYbKwNmNM&feature=youtu.be "Everything Is AWESOME")
+[![Link State Routing Simulator](https://i.imgur.com/gRPcajq.png)](https://youtu.be/eWftYnUYSqI "Link State Routing Simulator")
 
 # Contribution and Special Thanks
 * <b>Zack Zaiter (Abdulrahman)</b>: Programmer.

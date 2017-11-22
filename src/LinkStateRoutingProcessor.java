@@ -1,7 +1,14 @@
-import org.jgrapht.graph.DefaultWeightedEdge;
+import com.mxgraph.layout.mxCircleLayout;
+import com.mxgraph.swing.mxGraphComponent;
+import org.jgrapht.ListenableGraph;
+import org.jgrapht.ext.JGraphXAdapter;
+import org.jgrapht.graph.DefaultListenableGraph;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
+import javax.swing.*;
+import java.awt.*;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -51,33 +58,23 @@ public class LinkStateRoutingProcessor {
         Scanner sc = new Scanner(System.in);
         int choice;
         LSNode lsNode = new LSNode(args[0]);
-        boolean serverRunning = false;
-        boolean clientRunning = false;
+
+        runServer(lsNode);
+        runClient(lsNode);
 
         // do a loop that will ask the user of their choice.
         do {
-            printMenu(serverRunning, clientRunning);
+            printMenu();
             try {
                 choice = sc.nextInt();
                 switch (choice) {
-                    // 1- run the server
+                    // 1- print current LS shortest path from this node to all others
                     case 1:
-                        if (!serverRunning) {
-                            serverRunning = true;
-                            runServer(lsNode);
-                        } else System.out.println("Server is running! you can't run it twice.");
-                        break;
-                    // 2- run the clients communicator
-                    case 2:
-                        clientRunning = true;
-                        runClient(lsNode);
-                        break;
-                    // 3- print current LS shortest path from this node to all others
-                    case 3:
                         System.out.println(lsNode);
+                        showGraphGUI(lsNode.lsPacketGraph, lsNode.packetID);
                         break;
-                    // 4- exit the program
-                    case 4:
+                    // 2- exit the program
+                    case 2:
                         System.exit(0);
                         break;
                     default:
@@ -98,6 +95,7 @@ public class LinkStateRoutingProcessor {
      * @param lsNode a valid LSNode instance.
      */
     public static void runServer(LSNode lsNode){
+        System.out.println("Running the LSNode on port: " + lsNode.serverPort);
         // run the server as a thread that spawns threads for each LS packet connection ( Concurrency Control )
         new Thread(()->{
             try {
@@ -120,8 +118,8 @@ public class LinkStateRoutingProcessor {
 
                                 // lock the thread, update the local topology and unlock the reentrant lock
                                 lock.lock();
-                                SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> clientLSPacketGraph =
-                                        (SimpleDirectedWeightedGraph<String, DefaultWeightedEdge>) objectToRead;
+                                SimpleDirectedWeightedGraph<String, LSEdge> clientLSPacketGraph =
+                                        (SimpleDirectedWeightedGraph<String, LSEdge>) objectToRead;
                                 lsNode.addEdgesFromAnotherLSPacket(clientLSPacketGraph);
                                 lock.unlock();
                             } catch (Exception e) {
@@ -144,6 +142,7 @@ public class LinkStateRoutingProcessor {
      * @param lsNode a valid LSNode instance.
      */
     public static void runClient(LSNode lsNode){
+        System.out.println("Running the LSNodes Communicator, sit and enjoy how the graph develop over time :D");
         // run a thread for each client request to all connected adjacent LS links
         new Thread(()->{
             while(true){
@@ -175,16 +174,101 @@ public class LinkStateRoutingProcessor {
     /**
      * a method to print the main menu.
      *
-     * @param serverRunning a boolean that indicates if the server is running or not
-     * @param clientRunning a boolean that indicates if the client communicator is running or not
-     */
-    public static void printMenu(boolean serverRunning, boolean clientRunning){
+     * */
+    public static void printMenu(){
         System.out.println(
-                        "1 - Run LSNode Server. Currently: "+serverRunning+"\n" +
-                        "2 - Once you have all Packets up, run LSNode communicator. Currently: "+clientRunning+"\n" +
-                        "3 - Display current Routes from current LSNode.\n"+
-                        "4 - Exit program"
+                        "1 - Display current state of routes from current LSNode.\n"+
+                        "2 - Exit program"
         );
     }
 
+
+    /**
+     * Shows the LSNode topology as a graph on the screen.
+     *
+     * @param graph the graph instance of the LSNode
+     * @param name the name of the LSNode instance, it will be the title of the window.
+     */
+    public static void showGraphGUI(SimpleDirectedWeightedGraph<String, LSEdge> graph, String name){
+        // declare variables
+        JApplet applet = new JApplet();
+        ListenableGraph<String, LSEdge> g = new DefaultListenableGraph<>(graph);
+        // create a visualization using JGraph, via an adapter
+        JGraphXAdapter<String, LSEdge> jgxAdapter = new JGraphXAdapter<>(g);
+        applet.getContentPane().add(new mxGraphComponent(jgxAdapter));
+        applet.resize(new Dimension(500, 500));
+        // positioning via jgraphx layouts
+        mxCircleLayout layout = new mxCircleLayout(jgxAdapter);
+
+        // make the graph static, can't be edited
+        jgxAdapter.setCellsBendable(false);
+        jgxAdapter.setCellsDeletable(false);
+        jgxAdapter.setCellsCloneable(false);
+        jgxAdapter.setCellsEditable(false);
+        jgxAdapter.setCellsSelectable(false);
+        jgxAdapter.setCellsResizable(false);
+        jgxAdapter.setEdgeLabelsMovable(false);
+        jgxAdapter.setConnectableEdges(false);
+        jgxAdapter.setCellsDisconnectable(false);
+        jgxAdapter.setEdgeLabelsMovable(false);
+        jgxAdapter.setCellsLocked(false);
+        jgxAdapter.setConnectableEdges(false);
+        jgxAdapter.setAutoOrigin(false);
+        jgxAdapter.setSplitEnabled(false);
+
+        // set up the scene and show it to the user
+        layout.execute(jgxAdapter.getDefaultParent());
+        JFrame frame = new JFrame();
+        frame.getContentPane().add(applet);
+        frame.setTitle(name);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setResizable(false);
+        positionFrameOnScreen(frame, Math.random(), Math.random());
+        frame.toFront();
+        frame.setFocusable(true);
+        frame.requestFocus();
+        boolean aot = frame.isAlwaysOnTop();
+        frame.setAlwaysOnTop(true);
+        frame.setAlwaysOnTop(aot);
+    }
+
+    /**
+     * Positions the specified frame at a relative position in the screen, where
+     * 50% is considered to be the center of the screen.
+     *
+     * @param frame the frame.
+     * @param horizontalPercent the relative horizontal position of the frame (0.0 to 1.0, where
+     * 0.5 is the center of the screen).
+     * @param verticalPercent the relative vertical position of the frame (0.0 to 1.0, where 0.5
+     *  is the center of the screen).
+     */
+    public static void positionFrameOnScreen(final Window frame, final double horizontalPercent,
+                                             final double verticalPercent) {
+        final Rectangle s = getMaximumWindowBounds();
+        final Dimension f = frame.getSize();
+        final int w = Math.max(s.width - f.width, 0);
+        final int h = Math.max(s.height - f.height, 0);
+        final int x = (int) (horizontalPercent * w) + s.x;
+        final int y = (int) (verticalPercent * h) + s.y;
+        frame.setBounds(x, y, f.width, f.height);
+    }
+
+    /**
+     * Computes the maximum bounds of the current screen device.
+     *
+     * @return the maximum bounds of the current screen.
+     */
+    public static Rectangle getMaximumWindowBounds() {
+        final GraphicsEnvironment localGraphicsEnvironment = GraphicsEnvironment
+                .getLocalGraphicsEnvironment();
+        try {
+            final Method method = GraphicsEnvironment.class.getMethod("getMaximumWindowBounds",
+                    (Class[]) null);
+            return (Rectangle) method.invoke(localGraphicsEnvironment, (Object[]) null);
+        } catch (Exception e) {
+        }
+        final Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
+        return new Rectangle(0, 0, s.width, s.height);
+    }
 }
